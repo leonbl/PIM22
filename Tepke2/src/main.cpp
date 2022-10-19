@@ -2,7 +2,7 @@
 int staro_stanje = 0;
 int vklop = 0;
 void setup() {
-  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
   Serial.begin(9600);
   pinMode(13, OUTPUT);
 }
