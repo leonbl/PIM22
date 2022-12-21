@@ -1,13 +1,15 @@
 #include <Arduino.h>
-#define PWM 11
-#define dir_clk 4
-#define dir_en 7
-#define dir_ser 8
-#define dir_latch 12
-#define encX 2
-#define encY 9
+#include <PID_v1.h>
 
-void setStepCmd(uint8_t data);
+double Setpoint, Input, Output;
+double Kp=2, Ki=5, Kd=1;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+
+#define AB 6
+#define AA 7
+#define encX 2
+#define encY 3
+
 void setSpeedDir(uint8_t speed, uint8_t dir);
 void encoder(void);
 
@@ -20,48 +22,35 @@ int32_t premik = 0;
 void setup()
 {
   Serial.begin(9600);
-  pinMode(PWM, OUTPUT);
-  pinMode(dir_clk, OUTPUT);
-  pinMode(dir_en, OUTPUT);
-  pinMode(dir_ser, OUTPUT);
-  pinMode(dir_latch, OUTPUT);
+  pinMode(AB, OUTPUT);
+  pinMode(AA, OUTPUT);
   pinMode(encX, INPUT);
   pinMode(encY, INPUT);
-  digitalWrite(PWM, HIGH);
-  digitalWrite(dir_en, HIGH);
-
   attachInterrupt(digitalPinToInterrupt(encX), encoder, RISING);
-  setSpeedDir(hitrost, 0);
+  Setpoint = 1000;
+  myPID.SetMode(AUTOMATIC);
 }
 
 void loop()
 { 
-  premik = cnt - stari_cnt;
-  stari_cnt = cnt;
-  delay(1000);
-  Serial.println(premik/32.0*60.0);
-}
-
-void setStepCmd(uint8_t data)
-{
-  digitalWrite(dir_en, HIGH);
-  digitalWrite(dir_latch, LOW);
-  shiftOut(dir_ser, dir_clk, MSBFIRST, data);
-  digitalWrite(dir_latch, HIGH);
-  digitalWrite(dir_en, LOW);
+  Input = cnt;
+  myPID.Compute();
+  setSpeedDir(Output, 0);
+  Serial.println(cnt);
 }
 
 void setSpeedDir(uint8_t speed, uint8_t dir)
 {
   if (dir == 0)
   {
-    setStepCmd(0x04);
+    digitalWrite(AA, LOW);
+    analogWrite(AB, speed);
   }
   else
   {
-    setStepCmd(0x08);
+    digitalWrite(AB, LOW);
+    analogWrite(AA, speed);
   }
-  analogWrite(PWM, speed);
 }
 
 void encoder(void)
