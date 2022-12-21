@@ -2,7 +2,7 @@
 #include <PID_v1.h>
 
 double Setpoint, Input, Output;
-double Kp=2, Ki=5, Kd=1;
+double Kp=20, Ki=0, Kd=0;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 #define AB 6
@@ -28,6 +28,7 @@ void setup()
   pinMode(encY, INPUT);
   attachInterrupt(digitalPinToInterrupt(encX), encoder, RISING);
   Setpoint = 1000;
+  myPID.SetOutputLimits(-255, 255);
   myPID.SetMode(AUTOMATIC);
 }
 
@@ -35,8 +36,13 @@ void loop()
 { 
   Input = cnt;
   myPID.Compute();
-  setSpeedDir(Output, 0);
-  Serial.println(cnt);
+  if(Output > 0){
+    setSpeedDir(Output, 0);
+  }
+  else {
+    setSpeedDir(abs(Output), 1);
+  }
+  Serial.println(Output);
 }
 
 void setSpeedDir(uint8_t speed, uint8_t dir)
