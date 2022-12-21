@@ -2,7 +2,7 @@
 #include <PID_v1.h>
 
 double Setpoint, Input, Output;
-double Kp=20, Ki=0, Kd=0;
+double Kp=0.02, Ki=0.01, Kd=0;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 #define AB 6
@@ -10,7 +10,7 @@ PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 #define encX 2
 #define encY 3
 
-void setSpeedDir(uint8_t speed, uint8_t dir);
+void setSpeedDir(int32_t speed);
 void encoder(void);
 
 uint8_t ms = 10;
@@ -18,6 +18,7 @@ uint8_t hitrost = 255;
 int32_t cnt = 0;
 int32_t stari_cnt = 0;
 int32_t premik = 0;
+int32_t ser = 0;
 
 void setup()
 {
@@ -34,6 +35,7 @@ void setup()
 
 void loop()
 { 
+/*
   Input = cnt;
   myPID.Compute();
   if(Output > 0){
@@ -42,20 +44,37 @@ void loop()
   else {
     setSpeedDir(abs(Output), 1);
   }
-  Serial.println(Output);
+  ser++;
+  if((ser % 1000) == 0){
+    Serial.print(cnt);
+    Serial.print(" ");
+    Serial.println(Output);
+  }
+  */
+ for(int n = 0; n>-255; n--){
+    setSpeedDir(n);
+    delay(200);
+ }
 }
 
-void setSpeedDir(uint8_t speed, uint8_t dir)
+void setSpeedDir(int32_t speed)
 {
-  if (dir == 0)
+  if (speed > 0)
   {
     digitalWrite(AA, LOW);
     analogWrite(AB, speed);
+    Serial.print(cnt);
+    Serial.print(" levo ");
+    Serial.println(speed);
   }
   else
   {
     digitalWrite(AB, LOW);
+    speed = -speed;
     analogWrite(AA, speed);
+    Serial.print(cnt);
+    Serial.print(" desno ");
+    Serial.println(speed);
   }
 }
 
